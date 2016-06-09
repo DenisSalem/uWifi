@@ -1,5 +1,6 @@
 uWifi_iwIsntInstalled="uWifi: iw isn't installed"
 uWifi_ipIsntInstalled="uWifi: ip isn't installed"
+uWifi_whoIsntInstalled="uWifi: who isn't installed"
 uWifi_dhcpcdIsntInstalled="uWifi: dhcpcd isn't installed"
 uWifi_wpaSupplicantIsntInstalled="uWifi: wpa_supplicant isn't installed"
 uWifi_cannotFetchRouteMAC="uWifi: Cannot fetch route MAC! D:"

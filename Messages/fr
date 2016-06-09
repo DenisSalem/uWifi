@@ -1,5 +1,6 @@
 uWifi_iwIsntInstalled="uWifi: La commande iw n'est pas installée"
 uWifi_ipIsntInstalled="uWifi: La commande ip n'est pas installée"
+uWifi_whoIsntInstalled="uWifi: La commande who n'est pas installée"
 uWifi_dhcpcdIsntInstalled="uWifi: La commande dhcpcd n'est pas installée"
 uWifi_wpaSupplicantIsntInstalled="uWifi: La commande wpa_supplicant n'est pas installée"
 uWifi_cannotFetchRouteMAC="uWifi: Ne peut récupérer l'adresse MAC du routeur! D:"
