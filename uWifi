@@ -16,7 +16,7 @@ templatesPath="Templates"
 langFileName=$(echo $LANG | cut -f 1 -d '.' | cut -f 1 -d '_')
 
 function abort {
-  echo $1
+  echo "uWifi: $1"
   exit $2
 }
 
@@ -126,6 +126,20 @@ function getFirstLoggedInUserPreferencesPath {
 # GET AVAILABLE WIRELESS NETWORK ##########################
 ###########################################################
 
+function printNicelyAvailableWirelessNetwork {
+  i=1
+  if [ -e "/tmp/uWifi/scanOutput" ]
+  then
+    cat /tmp/uWifi/scanOutput | while read line
+    do
+      echo -e "$i\t$line"
+      i=$((i+1))
+    done
+  else
+    abort "$uWifi_noScanOutputAvailable" 255
+  fi
+}
+
 function updateAvailableWirelessNetwork {
  while :
   do
@@ -189,8 +203,9 @@ then
   InitiateUserPreferences $(eval echo ~$USER) # If necessary
 
   source $(eval echo "~$USER/.uWifi/preferences")
+  
+  printNicelyAvailableWirelessNetwork
 
-  if [ ! -e /tmp/uWifi/
 elif [ $1 = "auto" ]
 then
   if [ $USER != "root" ]
@@ -214,6 +229,7 @@ then
     fi                                                                #
                                                                       #  
     #   #  # # ## ### #################################################
+
     if [ ! -z $uWifiInterface ]
     then 
       mkdir /tmp/uWifi -p
