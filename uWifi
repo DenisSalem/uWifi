@@ -101,8 +101,8 @@ function InitiateUserPreferences {
 }
 
 function doesUserPreferencesPathExists {
-  home=$(eval echo ~$1)
-  if [ -e "$home/.uWifi/preference" ]
+  userHome=$(eval echo ~$1)
+  if [ -e "$userHome/.uWifi/preferences" ]
   then
     echo 1
   else
@@ -114,7 +114,7 @@ function getFirstLoggedInUserPreferencesPath {
   getLoggedInUsers | while read line
   do
     answer=$(doesUserPreferencesPathExists "$line")
-    if [ $answer -eq "1" ]
+    if [ "$answer" -eq "1" ]
     then
       echo -e "$(eval echo ~$1)"
       break
