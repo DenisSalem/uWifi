@@ -116,7 +116,7 @@ function getFirstLoggedInUserPreferencesPath {
     answer=$(doesUserPreferencesPathExists "$line")
     if [ "$answer" -eq "1" ]
     then
-      echo -e "$(eval echo ~$1)"
+      echo -e $(eval echo "~$line/.uWifi/preferences")
       break
     fi
   done
@@ -177,6 +177,7 @@ function getAvailableWirelessNetWork {
 # DECIDE WHAT TO DO, MAIN CONDITIONAL STRUCTURE ###########
 ###########################################################
 
+
 if [ $# -eq "0" ]
 then
   abort "$uWifi_nothingToDo" 0
@@ -186,22 +187,33 @@ then
 elif [ $1 = "addNetwork" ]
 then
   InitiateUserPreferences $(eval echo ~$USER) # If necessary
+
+  source $(eval echo "~$USER/.uWifi/preferences")
+
+  if [ ! -e /tmp/uWifi/
 elif [ $1 = "auto" ]
 then
   if [ $USER != "root" ]
   then
     abort "$uWifi_mustBeRoot" 255
   else
+
     checkIfCommandsExist
+
+    ################################################ ### ## # #  #   #
+    # Try first to get a wireless interface
+    #
+    #
 
     firstLoggedInUserPreferencesPath=$(getFirstLoggedInUserPreferencesPath) 
     if [ ! -z $firstLoggedInUserPreferencesPath ]
     then
       source $firstLoggedInUserPreferencesPath
     else
-      abort "$uWifi_noUserDefinedPreferencesAvailable" 255
-    fi
-
+      abort "$uWifi_noUserDefinedPreferencesAvailable" 255            #            
+    fi                                                                #
+                                                                      #  
+    #   #  # # ## ### #################################################
     if [ ! -z $uWifiInterface ]
     then 
       mkdir /tmp/uWifi -p
