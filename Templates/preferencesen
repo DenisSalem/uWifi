@@ -1,0 +1,12 @@
+# You may not wan't being the victime of a man-in-the-middle attack by
+# ARP cache poisoning. If so uWifi can permanently associate Router MAC
+# address with it's IP address on first connection. 
+uWifiAvoidArpPoisoning=true
+
+# Here's the name of your interface.
+# uWifi will try to detect it by itself if not already defined.
+uWifiInterface=$uWifiInterface
+
+# If set to true uWifi will automaticaly try to connect us
+# to an available network on login.
+uWifiAutoConnect=true

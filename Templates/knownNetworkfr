@@ -1,0 +1,26 @@
+# Il s'agit du nom du réseau sans fil, 
+# par exemple:
+# uWifiNetworkSSID=moofoobar
+
+uWifiNetworkSSID=$uWifiNetworkSSID
+
+# Il s'agit de l'adresse MAC du point d'accès du réseau
+# sans fil. Par exemple:
+# uWifiNetworkBSSID=00:11:22:33:44:55
+
+uWifiNetworkBSSID=$uWifiNetworkBSSID
+
+# Il s'agit du type de sécurité associé au réseau sans fil.
+# Cette variable peut prendre les valeurs suivantes:
+#  NONE
+#  WEP
+#  WPA
+#  WPA2
+
+uWifiNetworkENCRYPTION=$uWifiNetworkENCRYPTION
+
+# Dans le cas ou la valeur de la variable uWifiNetworkENCRYPTION
+# serait différente de NONE la variable ci-dessous contient le
+# mot de passe du réseau sans fil.
+
+uWifiNetworkPASSWORD=$uWifiNetworkPASSWORD

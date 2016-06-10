@@ -7,4 +7,6 @@ uWifi_cannotFetchRouteMAC="uWifi: Ne peut récupérer l'adresse MAC du routeur! 
 uWifi_cannotFetchRouteIP="uWifi: Ne peut récupérer l'adresse IP du routeur! D:"
 uWifiPermanentlyAssociateHardwareAddresseToHostname="uWifi: Association de l'adresse MAC au nom d'hôte" 
 uWifi_nothingToDo="uWifi: Rien à faire"
+uWifi_mustBeRoot="uWifi: Vous devez être l'utilisateur root"
 uWifi_unknownCommand="uWifi: Commande inconnue"
+uWifi_noUserDefinedPreferencesAvailable="uWifi: Il n'y a pas de préférences utilisateurs définis"

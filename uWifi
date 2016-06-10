@@ -1,8 +1,18 @@
 #! /bin/bash
 
-uWifiVersion="0.0.2"
-basePath="/home/http/dev/uWifi/"
-langPath="Messages/"
+uWifiVersion="1.0.0"
+
+# Base path hold both Templates and Messages folders
+# Depending of the distro it might be redefined
+basePath="/home/http/dev/uWifi"
+
+# Store all messages translated in available languages
+langPath="Messages"
+
+# Store all configuration files templates in available languages
+templatesPath="Templates"
+
+# Store language filename/suffix based on current locale
 langFileName=$(echo $LANG | cut -f 1 -d '.' | cut -f 1 -d '_')
 
 function abort {
@@ -14,11 +24,11 @@ function abort {
 # LANGUAGE SETTING ########################################
 ###########################################################
 
-if [ -f $basePath$langPath$langFileName ]
+if [ -f "$basePath/$langPath/$langFileName" ]
 then
-  source $basePath$langPath$langFileName
+  source "$basePath/$langPath/$langFileName"
 else
-  source $basePath$langPath"en"
+  source "$basePath/$langPath/en"
 fi
 
 
@@ -26,11 +36,13 @@ fi
 # CHECK IF COMMANDS EXIST #################################
 ###########################################################
 
-wpa_supplicant -v >/dev/null 2>&1 || abort "$uWifi_wpaSupplicantIsntInstalled"
-dhcpcd --version >/dev/null 2>&1 || abort "$uWifi_dhcpcdIsntInstalled"
-iw --version >/dev/null 2>&1 || abort "$uWifi_iwIsntInstalled"
-ip -V >/dev/null 2>&1 || abort "$uWifi_ipIsntInstalled"
-who --version -V >/dev/null 2>&1 || abort "$uWifi_whoIsntInstalled"
+function checkIfCommandsExist {
+  wpa_supplicant -v >/dev/null 2>&1 || abort "$uWifi_wpaSupplicantIsntInstalled" 255
+  dhcpcd --version >/dev/null 2>&1 || abort "$uWifi_dhcpcdIsntInstalled" 255
+  iw --version >/dev/null 2>&1 || abort "$uWifi_iwIsntInstalled" 255
+  ip -V >/dev/null 2>&1 || abort "$uWifi_ipIsntInstalled" 255
+  who --version -V >/dev/null 2>&1 || abort "$uWifi_whoIsntInstalled" 255
+}
 
 ###########################################################
 # AVOID ARP POISONING #####################################
@@ -69,9 +81,58 @@ function getLoggedInUsers {
   who | cut -f 1 -d ' ' | sort -u
 }
 
+function getUsersHomeDirectories {
+  echo -e "$1" | while read line
+  do
+    eval echo ~$line
+  done
+}
+
+function InitiateUserPreferences {
+  mkdir "$1/.uWifi" -p
+  mkdir "$1/.uWifi/knownNetworks" -p
+  if [ ! -e "$1/.uWifi/preferences" ]
+  then
+    uWifiInterface=$(echo -e $(ip link | cut -f 2 -d ":" | grep -m 1 wl))
+    template="$(cat -v "$basePath/$templatesPath/preferences$langFileName")"
+    output=$(eval "echo -e \"$template\"")
+    echo -e "$output" > "$1/.uWifi/preferences"
+  fi
+}
+
+function doesUserPreferencesPathExists {
+  home=$(eval echo ~$1)
+  if [ -e "$home/.uWifi/preference" ]
+  then
+    echo 1
+  else
+    echo 0
+  fi
+}
+
+function getFirstLoggedInUserPreferencesPath {
+  getLoggedInUsers | while read line
+  do
+    answer=$(doesUserPreferencesPathExists "$line")
+    if [ $answer -eq "1" ]
+    then
+      echo -e "$(eval echo ~$1)"
+      break
+    fi
+  done
+}
+
 ###########################################################
 # GET AVAILABLE WIRELESS NETWORK ##########################
 ###########################################################
+
+function updateAvailableWirelessNetwork {
+ while :
+  do
+    availableWirelessNetwork=$(getAvailableWirelessNetWork "$1")
+    sleep 10
+  done 
+}
 
 function getAvailableWirelessNetWork {
   parser='\
@@ -109,27 +170,59 @@ function getAvailableWirelessNetWork {
 
   ip link set dev "$1" up
   scanOutput=`iw dev "$1" scan | awk "$parser"`
-  echo "$scanOutput" > /tmp/uWifiScanOutput
-  sort --key 2 --reverse --numeric-sort /tmp/uWifiScanOutput
-  rm /tmp/uWifiScanOutput
+  echo "$scanOutput" | sort --key 2 --reverse --numeric-sort > /tmp/uWifi/scanOutput
 }
 
 ###########################################################
-# DECIDE WHAT TO DO #######################################
+# DECIDE WHAT TO DO, MAIN CONDITIONAL STRUCTURE ###########
 ###########################################################
-
 
 if [ $# -eq "0" ]
 then
   abort "$uWifi_nothingToDo" 0
+elif [ $1 = "version" ]
+then
+  echo "uWifi version $uWifiVersion"
+elif [ $1 = "addNetwork" ]
+then
+  InitiateUserPreferences $(eval echo ~$USER) # If necessary
 elif [ $1 = "auto" ]
 then
-  loggedInUsers=$(getLoggedInUsers)
-  availableWirelessNetwork=$(getAvailableWirelessNetWork "wlp0s20u3")
-  echo -e "$loggedInUsers" | while read line
-  do
-    eval echo ~$line
-  done
+  if [ $USER != "root" ]
+  then
+    abort "$uWifi_mustBeRoot" 255
+  else
+    checkIfCommandsExist
+
+    firstLoggedInUserPreferencesPath=$(getFirstLoggedInUserPreferencesPath) 
+    if [ ! -z $firstLoggedInUserPreferencesPath ]
+    then
+      source $firstLoggedInUserPreferencesPath
+    else
+      abort "$uWifi_noUserDefinedPreferencesAvailable" 255
+    fi
+
+    if [ ! -z $uWifiInterface ]
+    then 
+      mkdir /tmp/uWifi -p
+      updateAvailableWirelessNetwork "$uWifiInterface" &
+      echo $! > "/tmp/uWifi/updateAvailableWirelessNetwork.pid.$!"
+    fi
+  fi
+elif [ $1 = "stop" ]
+then
+  if [ $USER != "root" ]
+  then
+    abort "$uWifi_mustBeRoot" 255
+  else
+    ls /tmp/uWifi/*.pid.* 2>/dev/null | while read line
+    do
+      echo "$line"
+      kill -9 $(cat "$line")
+      rm $line
+    done
+    rm -rf /tmp/uWifi
+  fi
 else
   echo "$uWifi_unknownCommand"
 fi

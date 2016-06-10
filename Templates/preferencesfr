@@ -1,0 +1,16 @@
+# Vous n'avez sans doute pas envie d'être la victime d'une attaque dite
+# de l'homme-du-milieu par corruption de cache ARP. Si c'est le cas, uWifi
+# peut durablement associé l'adresse MAC du routeur avec son adresse IP.
+uWifiAvoidArpPoisoning=true
+
+# Ici est stocké le nom de l'interface wifi.
+# uWifi essayera de déterminer l'interface si jamais elle n'est pas encore définit
+uWifiInterface=$uWifiInterface
+
+# Si la variable vaut true, uWifi tentera de se connecter automatiquement
+# à un réseau wifi connu au moment du login d'un(e) utilisat(eur)(rice).
+uWifiAutoConnect=true
+
+# Pour des raisons de sécurité et d'anonymisation pous pourriez vouloir
+# changer d'adresse MAC à chaque connection.
+uWifiGetNewMAC=true
