@@ -15,6 +15,7 @@ templatesPath="Templates"
 # Store language filename/suffix based on current locale
 langFileName=$(echo $LANG | cut -f 1 -d '.' | cut -f 1 -d '_')
 
+sleepDuration=10
 function abort {
   echo "uWifi: $1"
   exit $2
@@ -41,6 +42,7 @@ function checkIfCommandsExist {
   dhcpcd --version >/dev/null 2>&1 || abort "$uWifi_dhcpcdIsntInstalled" 255
   iw --version >/dev/null 2>&1 || abort "$uWifi_iwIsntInstalled" 255
   ip -V >/dev/null 2>&1 || abort "$uWifi_ipIsntInstalled" 255
+  who --version -V >/dev/null 2>&1 || abort "$uWifi_whoIsntInstalled" 255
   who --version -V >/dev/null 2>&1 || abort "$uWifi_whoIsntInstalled" 255
 }
 
@@ -144,7 +146,7 @@ function updateAvailableWirelessNetwork {
  while :
   do
     availableWirelessNetwork=$(getAvailableWirelessNetWork "$1")
-    sleep 10
+    sleep $sleepDuration
   done 
 }
 
@@ -208,7 +210,7 @@ then
 
 elif [ $1 = "auto" ]
 then
-  if [ $USER != "root" ]
+  if [ $(whoami) != "root" ]
   then
     abort "$uWifi_mustBeRoot" 255
   else
@@ -239,7 +241,7 @@ then
   fi
 elif [ $1 = "stop" ]
 then
-  if [ $USER != "root" ]
+  if [ "root" != $(whoami) ]
   then
     abort "$uWifi_mustBeRoot" 255
   else
