@@ -100,12 +100,12 @@ function printAvailableWirelessNetwork {
 function getNonRootUserName {
     pid=$(echo $$ | cut -d " " -f 2)
     i=1
-    username=$(ps faux | grep $pid | grep -v "grep" | cut -d " " -f 1)
+    username=$(ps faux | grep -v "grep" | grep $pid | cut -d " " -f 1)
     if [ $username = "root" ]
     then
         while [ $username = "root" ]
         do
-            username=$(ps faux | grep $pid -B $i| grep -v "grep" | head -n 1 | cut -d " " -f 1)
+            username=$(ps faux | grep -v "grep" | grep $pid -B $i | head -n 1 | cut -d " " -f 1)
             i=$((i+1))
         done
         echo $username
