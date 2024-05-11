@@ -1,3 +1,0 @@
-# switch to monitor mode
-
-iw phy <physical interface> interface add <new monitor interface> type monitor
