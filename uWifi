@@ -84,19 +84,6 @@ function getAvailableWirelessNetWork {
     echo "$scanOutput" | sort --key 2 --reverse --numeric-sort
 }
 
-function printAvailableWirelessNetwork {
-    printInterfaces | while read interface
-    do
-        echo -e "$interface:"
-        i=1
-        getAvailableWirelessNetWork $interface | while read network_line
-        do
-            echo -e "\t$i\t$network_line"
-            i=$((i+1))
-        done
-    done
-}
-
 function getNonRootUserName {
     pid=$(echo $$ | cut -d " " -f 2)
     i=1
@@ -115,6 +102,71 @@ function getNonRootUserName {
     fi
 }
 
+function printAvailableWirelessNetwork {
+    username=$(getNonRootUserName)
+    homedir=$(eval echo ~$username)
+    mkdir -pv $homedir/.config/uWifi/networks > /dev/null
+    chown $username:$username $homedir/.config/uWifi > /dev/null
+    i=1
+    getAvailableWirelessNetWork $1 | while read network_line
+    do
+        mac_id=$(echo $network_line | cut -d " " -f 1 | sed -e s/://g)
+        if [ -f "$homedir/.config/uWifi/networks/$mac_id.conf" ]
+        then
+			beginColor='\e[1;32m'
+			endColor='\e[0m'
+        else
+			beginColor=''
+			endColor=''
+        fi
+        echo -e "\t$beginColor$i\t$network_line$endColor"
+        i=$((i+1))
+    done
+}
+
+function connectToNetwork {
+    interface=$1
+    networks=$(printAvailableWirelessNetwork $interface)
+    echo "$networks" | while read line
+    do
+        echo "$line"
+    done
+    read -p "Choose a network (1 to $(echo "$networks" | wc -l)): " answer
+    SSID=$(echo "$networks" | head -n $answer | tail -n 1 | cut -f 6)
+    encryption=$(echo "$networks" | head -n $answer | tail -n 1 | cut -f 5)
+    mac_id=$(echo "$networks" | head -n $answer | tail -n 1 | cut -f 3 | sed -e s/://g)
+    echo "Attempt to connect to $SSID:"
+    username=$(getNonRootUserName)
+    homedir=$(eval echo ~$username)
+    killall dhcpcd 2> /dev/null		
+	if [[ -f "/run/wpa_supplicant/$interface" ]]
+	then
+		rm "/run/dhcpcd-$interface.pid"
+	fi
+    if [ "$encryption" == "WPA" ] || [ "$encryption" == "WPA2" ]
+    then
+        killall wpa_supplicant 2> /dev/null
+        if [ -f "/run/wpa_supplicant/$1" ]
+        then
+            rm "/run/wpa_supplicant/$1"
+        fi
+        if ! [ -f "$homedir/.config/uWifi/networks/$mac_id.conf" ]
+        then
+			read -p "$SSID reqire WPA security key: " passphrase
+			echo "ctrl_interface=/run/wpa_supplicant" > "$homedir/.config/uWifi/networks/$mac_id.conf"
+			wpa_passphrase "$SSID" "$passphrase" >> "$homedir/.config/uWifi/networks/$mac_id.conf"
+        fi
+        wpa_supplicant -dd -B -i $interface -c "$homedir/.config/uWifi/networks/$mac_id.conf"
+    
+    elif [ "$encryption" == "NONE" ]
+    then
+        iw dev $interface connect "$SSID"
+    fi
+    dhcpcd "$interface"
+    echo "nameserver 80.67.169.12" > /etc/resolv.conf
+
+}
+
 if [ $# -eq "0" ]
 then
     abort "Nothing to do" 0
@@ -126,8 +178,12 @@ then
     printInterfaces
 elif [ $1 = "networks" ]
 then
-    printAvailableWirelessNetwork
-    getNonRootUserName
+    if [ $# -lt "2" ]
+    then
+        abort "You must provide interface." 255
+    fi
+
+    connectToNetwork $2
 else
   abort "Unknown command" 255
 fi
